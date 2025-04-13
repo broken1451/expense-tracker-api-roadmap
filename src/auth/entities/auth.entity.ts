@@ -25,6 +25,9 @@ export class Auth extends Document {
     @Prop({ type: Date, default: Date.now })
     update_at: Date | number;
 
+    @Prop({ type: Date, default: Date.now })
+    update_at_login: Date | number;
+
     @Prop({ type: Boolean, default: true })
     isActive: boolean;
 

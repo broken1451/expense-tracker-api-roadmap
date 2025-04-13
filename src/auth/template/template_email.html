@@ -1,0 +1,176 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="es">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tu Clave Ha Sido Actualizada</title>
+    <style type="text/css">
+        body {
+            margin: 0 !important;
+            padding: 0 !important;
+            background-color: #f7f7f7;
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            -webkit-text-size-adjust: none;
+        }
+        table {
+            border-collapse: collapse !important;
+        }
+        img {
+            border: 0 !important;
+            outline: none !important;
+        }
+        a {
+            color: #1e88e5;
+            text-decoration: none;
+        }
+        a:hover {
+            text-decoration: underline;
+        }
+
+        /* Estilos para el contenedor principal */
+        .email-container {
+            max-width: 600px;
+            margin: 20px auto;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Estilos para la tarjeta blanca */
+        .card {
+            background-color: #ffffff;
+            padding: 30px;
+            text-align: center;
+        }
+
+        /* Icono de éxito */
+        .icon-success {
+            display: inline-block;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background-color: #28a745;
+            color: #fff;
+            font-size: 2em;
+            line-height: 50px;
+            margin-bottom: 20px;
+        }
+
+        /* Título */
+        h1 {
+            color: #37474f;
+            margin-top: 0;
+            margin-bottom: 20px;
+            font-size: 2em;
+            font-weight: bold;
+            line-height: 1.2;
+        }
+
+        /* Saludo */
+        .greeting {
+            font-size: 1em;
+            color: #546e7a;
+            margin-bottom: 15px;
+        }
+
+        /* Párrafo de información */
+        .info-paragraph {
+            color: #546e7a;
+            line-height: 1.7;
+            margin-bottom: 15px;
+            font-size: 0.9em;
+        }
+
+        /* Párrafo importante */
+        .important-paragraph {
+            color: #d32f2f;
+            font-weight: bold;
+            margin-bottom: 20px;
+            font-size: 1em;
+        }
+
+        /* Fecha y hora */
+        .datetime {
+            color: #78909c;
+            font-weight: bold;
+        }
+
+        /* Consejo de seguridad */
+        .security-tip {
+            background-color: #e3f2fd;
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid #bbdefb;
+            color: #546e7a;
+            font-size: 0.9em;
+            margin-top: 25px;
+            text-align: left;
+        }
+
+        .security-tip strong {
+            font-weight: bold;
+            color: #1e88e5;
+        }
+
+        /* Firma */
+        .signature {
+            margin-top: 25px;
+            color: #78909c;
+            font-style: italic;
+            font-size: 0.9em;
+        }
+
+        /* Nombre de la empresa */
+        .company-name {
+            font-weight: bold;
+            color: #263238;
+            font-size: 0.9em;
+        }
+
+        /* Pie de página */
+        .footer {
+            margin-top: 30px;
+            text-align: center;
+            color: #90a4ae;
+            font-size: 0.8em;
+        }
+
+        /* Para asegurar que el degradado de fondo no cause problemas en algunos clientes */
+        body[yahoo] .email-container {
+            width: 100% !important;
+        }
+    </style>
+</head>
+<body style="margin: 0 !important; padding: 0 !important; background-color: #f7f7f7; font-family: Arial, sans-serif; line-height: 1.6; color: #333; -webkit-text-size-adjust: none;" yahoo="fix">
+    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" align="center" style="border-collapse: collapse !important;">
+        <tr>
+            <td align="center" style="padding: 20px;">
+                <table role="presentation" width="600" cellspacing="0" cellpadding="0" border="0" class="email-container" style="border-collapse: collapse !important; background-color: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);">
+                    <tr>
+                        <td align="center" class="card" style="padding: 30px;">
+                            <div class="icon-success" style="display: inline-block; width: 50px; height: 50px; border-radius: 50%; background-color: #28a745; color: #fff; font-size: 2em; line-height: 50px; margin-bottom: 20px;">
+                                &#10004;
+                            </div>
+                            <h1 style="color: #37474f; margin-top: 0; margin-bottom: 20px; font-size: 2em; font-weight: bold; line-height: 1.2;">¡Tu Clave Ha Sido Actualizada!</h1>
+                            <p class="greeting" style="font-size: 1em; color: #546e7a; margin-bottom: 15px;">Hola <a href="mailto:<%= email %>" style="color: #1e88e5; text-decoration: none;"><%= email %></a>,</p>
+                            <p class="info-paragraph" style="color: #546e7a; line-height: 1.7; margin-bottom: 15px; font-size: 0.9em;">Recientemente realizaste un cambio en la contraseña de tu cuenta. Esta modificación se completó exitosamente el <span class="datetime" style="color: #78909c; font-weight: bold;"><%= fecha %></span></p>
+                            <p class="important-paragraph" style="color: #d32f2f; font-weight: bold; margin-bottom: 20px; font-size: 1em;">Si esta acción fue realizada por ti, puedes ignorar este mensaje. ¡Todo está en orden!</p>
+                            <p class="important-paragraph" style="color: #d32f2f; font-weight: bold; margin-bottom: 20px; font-size: 1em;"><strong>Si tú no solicitaste este cambio o sospechas alguna actividad inusual, por favor, contáctanos de inmediato respondiendo a este correo o llamando al <a href="tel:+56936742459" style="color: #1e88e5; text-decoration: none;">+56936742459</a>.</strong></p>
+                            <div class="security-tip" style="background-color: #e3f2fd; padding: 15px; border-radius: 8px; border: 1px solid #bbdefb; color: #546e7a; font-size: 0.9em; margin-top: 25px; text-align: left;">
+                                <strong style="font-weight: bold; color: #1e88e5;">Importante:</strong> Por tu seguridad, te recomendamos encarecidamente no compartir tu nueva contraseña con nadie. Mantener tu información personal segura es nuestra prioridad.
+                            </div>
+                            <p class="signature" style="margin-top: 25px; color: #78909c; font-style: italic; font-size: 0.9em;">Saludos cordiales,</p>
+                            <p class="company-name" style="font-weight: bold; color: #263238; font-size: 0.9em;">Expense tracker</p>
+                            <div class="footer" style="margin-top: 30px; text-align: center; color: #90a4ae; font-size: 0.8em;">
+                                Este es un mensaje automático. Por favor, no respondas a este correo electrónico.
+                            </div>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+</body>
+</html>

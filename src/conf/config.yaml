@@ -1,8 +1,19 @@
 port: 3500
 mongo:
-  url: mongodb://localhost:27017
-  dbName: tracker-expense-db
-  collectionName: expenses
+  url: ""
+  dbName: ""
+  collectionName: ""
 jwt:
-  secret: secret_jwt_key145@#$
-  expiresIn: 4h
+  secret: ""
+  expiresIn: ""
+email:
+  service: ""
+  host: ""
+  port: ""
+  auth:
+    user: ""
+    pass: ""
+  from:
+    name: ""
+    address: ""
+  subject: ""
