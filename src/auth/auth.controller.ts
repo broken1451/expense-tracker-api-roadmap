@@ -1,14 +1,17 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, HttpCode, Query } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { CreateAuthDto } from './dto/create-auth.dto';
 import { UpdateAuthDto } from './dto/update-auth.dto';
 import { LoginhDto } from './dto/login.dto';
+import { Auth } from './decorators/auth.decorator';
+import { ValidRoles } from './interface/role.interfaces';
 
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
   @Post()
+  @Auth(ValidRoles.admin)
   create(@Body() createAuthDto: CreateAuthDto) {
     return this.authService.create(createAuthDto);
   }
@@ -19,21 +22,32 @@ export class AuthController {
   }
 
   @Get()
-  findAll() {
-    return this.authService.findAll();
+  @Auth(ValidRoles.admin)
+  findAll(@Query('page') page: string) {
+    return this.authService.findAll(page);
   }
 
-  @Get(':id')
+  @Get('/:id')
+  @Auth(ValidRoles.admin)
   findOne(@Param('id') id: string) {
     return this.authService.findOne(id);
   }
 
-  @Patch(':id')
+  @Patch('/:id')
+  @Auth(ValidRoles.admin)
   update(@Param('id') id: string, @Body() updateAuthDto: UpdateAuthDto) {
     return this.authService.update(id, updateAuthDto);
   }
 
-  @Delete(':id')
+  // habilitar despues
+  // @Post('/updatePassword')
+  // @HttpCode(200)
+  // updatePassword(@Body() updateAuthDto: UpdateAuthDto) {
+  //   return this.authService.updatePassword(updateAuthDto);
+  // }
+
+  @Delete('/:id')
+  @Auth(ValidRoles.admin)
   remove(@Param('id') id: string) {
     return this.authService.remove(id);
   }

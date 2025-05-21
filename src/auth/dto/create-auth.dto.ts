@@ -1,4 +1,4 @@
-import { IsArray, IsEmail, IsNotEmpty, IsOptional, IsString, Matches, MaxLength, MinLength } from "class-validator";
+import { IsArray, IsEmail, IsNotEmpty, IsNumber, IsOptional, IsString, Matches, MaxLength, MinLength } from "class-validator";
 
 
 export class CreateAuthDto {
@@ -35,5 +35,8 @@ export class CreateAuthDto {
     @IsArray()
     @IsOptional()
     roles?: string[];
+
+    @IsNumber()
+    salary: number;
 
 }

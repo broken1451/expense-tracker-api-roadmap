@@ -5,12 +5,14 @@
         "type": "node",
         "request": "launch",
         "name": "Launch NestJS App",
+        "runtimeExecutable": "nodemon",
         "program": "${workspaceFolder}/src/main.ts",
         "runtimeArgs": ["-r", "ts-node/register"],
         "sourceMaps": true,
         "cwd": "${workspaceFolder}",
         "console": "integratedTerminal",
-        "internalConsoleOptions": "neverOpen"
+        "internalConsoleOptions": "neverOpen",
+        "args": ["--exec", "ts-node -r tsconfig-paths/register src/main.ts"]
       }
     ]
   }

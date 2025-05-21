@@ -27,7 +27,6 @@ export class StrategyService extends PassportStrategy(Strategy) {
         }
 
         const userDb = await this.userModel.findById(id);
-        // console.log (userDb);
         if (!userDb) {
             throw new UnauthorizedException('Token no valid');
         }

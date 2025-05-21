@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable, Body } from '@nestjs/common';
 import { CreateAuthDto } from './dto/create-auth.dto';
 import { UpdateAuthDto } from './dto/update-auth.dto';
 import { Auth } from './entities/auth.entity';
@@ -10,6 +10,10 @@ import * as bcrypt from 'bcrypt';
 import { rolesPermited } from './utils/roles-permited';
 import { JwtInterface } from './interface/jwt.interface';
 import { LoginhDto } from './dto/login.dto';
+import * as ejs from 'ejs';
+import * as nodemailer from 'nodemailer';
+import * as path from 'path';
+import * as fs from 'fs';
 
 @Injectable()
 export class AuthService {
@@ -26,11 +30,19 @@ export class AuthService {
   ) { }
 
   async create(createAuthDto: CreateAuthDto) {
-    let { name, email, password, last_name, ...restProperties } = createAuthDto;
+    let { name, email, password, last_name, salary, ...restProperties } = createAuthDto;
+
+    if (!name || !email || !password || !last_name || !salary) {
+      const missingFields = ['name', 'email', 'password', 'last_name', 'salary'].filter(field => !createAuthDto[field]);
+      if (missingFields.length > 0) {
+        throw new BadRequestException(`The following fields are required: ${missingFields.join(', ')}`);
+      }
+    }
 
     name = name.toLowerCase().trim();
     email = email.toLowerCase().trim();
     last_name = last_name.toLowerCase().trim();
+    salary = Number(salary.toString().trim());
 
 
     let userExist: Auth;
@@ -64,20 +76,18 @@ export class AuthService {
       last_name,
       email,
       password,
+      salary,
       ...restProperties,
-    }).catch((error) => {
-      console.log (error);
-      throw new BadRequestException("Error to create user, the email is already in use");
     });
 
     const returnUserCreated = await this.findOne(userCreated._id.toString());
-    return returnUserCreated.toObject();
+    return {returnUserCreated, token: this.getJWT({ id: userCreated._id.toString() })};
   }
 
-  async findAll() {
-    const users = await this.userModel.find({}, '-password  -__v').sort({ created_at: 1 }).limit(5);
+  async findAll(page?: string) {
+    const users = await this.userModel.find({}, '-password  -__v').sort({ created_at: 1 }).limit(20).skip(Number(page) || 0);
     const countsUser = await this.userModel.countDocuments({});
-    return { users, countsUser };
+    return { users, totalUser: countsUser, userLenght: users.length };
   }
 
   async findOne(id: string) {
@@ -97,33 +107,78 @@ export class AuthService {
 
   async update(id: string, updateAuthDto: UpdateAuthDto) {
 
-    let {name, last_name, email, updated,  ...rest} = updateAuthDto;
+    let {name, last_name, email,salary, ...rest} = updateAuthDto;
+    if (!name || !email || !last_name) {
+      const missingFields = ['name', 'email', 'last_name'].filter(field => !updateAuthDto[field]);
+      if (missingFields.length > 0) {
+        throw new BadRequestException(`The following fields are required: ${missingFields.join(', ')}`);
+      }
+    }
+
     name = name.toLowerCase().trim();
     email = email.toLowerCase().trim();
     last_name = last_name.toLowerCase().trim();
+    salary = Number(salary.toString().trim());
 
-    await this.findOne(id);
+    const user = await this.findOne(id);
     if (updateAuthDto.roles) {
       updateAuthDto.roles = rolesPermited(updateAuthDto.roles, this.rolesPermited);
+      rest.roles = updateAuthDto.roles;
     }
 
-    updated = Date.now();
     if (rest.password) {
       const saltOrRounds = 10;
       rest.password = bcrypt.hashSync(rest.password, saltOrRounds);
     }
     
-    const userUpdate = await this.userModel.findByIdAndUpdate(
-      id,
-      { update_at: Date.now(), name, last_name, email, updated, ...rest },
-      { new: true, select: '-password -__v' },
-    );
-    
-    if (!userUpdate) {
-      throw new BadRequestException(`El usuario con el id ${id} no existe`);
+    let userUpdate: Auth;
+    try {
+       userUpdate = await this.userModel.findByIdAndUpdate(
+        id,
+        { update_at: Date.now(), name, last_name, email,salary, ...rest },
+        { new: true, select: '-password -__v' },
+      );
+
+      if (!userUpdate) {
+        throw new BadRequestException(`El usuario con el id ${id} no existe`);
+      }
+
+    } catch (error) {
+      throw new BadRequestException(`Error updating user: ${error.message}`);
     }
 
+    user.retry = 0;
+    user.save();
     return userUpdate;
+  }
+
+  async updatePassword(updateAuthDto: UpdateAuthDto) {
+
+    let {password, email} = updateAuthDto;
+    if (!password || !email) {
+      const missingFields = ['password', 'email'].filter(field => !updateAuthDto[field]);
+      if (missingFields.length > 0) {
+        throw new BadRequestException(`The following fields are required: ${missingFields.join(', ')}`);
+      }
+    }
+
+    email = email.toLowerCase().trim();
+    password = password.toLowerCase().trim();
+
+    const user: Auth =  await this.userModel.findOne({email}).exec();
+    if (!user) {
+      throw new BadRequestException(`El usuario con el email ${email} no existe`);
+    }
+  
+    const saltOrRounds = 10;
+    password = bcrypt.hashSync(password, saltOrRounds);
+    user.retry = 0;
+    user.password = password;
+    user.update_at = Date.now();
+    await user.save();
+    
+    await this.sendEmail(updateAuthDto);
+    return {ok: true, message: 'Password updated successfully'};
   }
 
   async remove(id: string) {
@@ -132,6 +187,11 @@ export class AuthService {
     if (!user) {
       throw new BadRequestException(`El usuario con el id ${id} no existe`);
     }
+
+    if (!user.isActive) {
+      throw new BadRequestException(`El usuario con el id ${id} ya esta eliminado`);
+    }
+
     user.isActive = false;
     user.update_at = Date.now();
     const userUpdate = await this.userModel.findByIdAndUpdate(id, user, {
@@ -143,8 +203,9 @@ export class AuthService {
   }
 
   async login(loginAuthDto: LoginhDto) {
-    const { email, password } = loginAuthDto;
-    const user = await this.userModel.findOne({ email }).select('-user.password');
+    let { email, password } = loginAuthDto;
+    email = email.toLowerCase().trim();
+    const user = await this.userModel.findOne({ email }).select('-name -last_name -email -created_at -update_at -roles -__v'); 
 
     if (!user) {
       throw new BadRequestException(`The user with the email ${email} does not exist`);
@@ -164,6 +225,7 @@ export class AuthService {
     }
 
     user.retry = 0;
+    user.update_at_login = Date.now();
     await user.save()
 
     const userFound = await this.findOne(user._id.toString());
@@ -178,5 +240,44 @@ export class AuthService {
   private getJWT(payload: JwtInterface): string {
     const token = this.jwtService.sign(payload);
     return token;
+  }
+
+  async sendEmail(updateAuthDto: UpdateAuthDto) {
+    let {email} = updateAuthDto;
+    const templatePath = path.join(__dirname, './template/template_email.html');
+    if (!email) {
+      const missingFields = ['email'].filter(field => !updateAuthDto[field]);
+      if (missingFields.length > 0) {
+        throw new BadRequestException(`The following fields are required: ${missingFields.join(', ')}`);
+      }
+    }
+    const transporter = nodemailer.createTransport({
+      service: this.configService.get('email.service'),
+      host: this.configService.get('email.host'),
+      port: this.configService.get('email.port'),
+      secure: false, // true for port 465, false for other ports
+      auth: {
+        user: this.configService.get('email.auth.user'),
+        pass: this.configService.get('email.auth.pass'),
+      },
+    });
+
+    let datos: any = updateAuthDto
+    datos.email = email;
+    const dayjs = require('dayjs')
+    datos.fecha = dayjs().format('DD/MM/YYYY');
+
+    const html = fs.readFileSync(path.resolve(templatePath), 'utf8'); 
+    const templateMapped = ejs.render(html, datos);
+
+    await transporter.sendMail({
+      from: {
+        name: this.configService.get('email.from.name'),
+        address: this.configService.get('email.from.address')
+      }, 
+      to: [`${email}`],
+      subject: this.configService.get('email.subject'),
+      html: `${templateMapped}`,
+    });
   }
 }

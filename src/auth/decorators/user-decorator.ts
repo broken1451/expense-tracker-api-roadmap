@@ -2,16 +2,18 @@ import { createParamDecorator, ExecutionContext, SetMetadata } from '@nestjs/com
 
 export const GetUser = createParamDecorator(
     (data: string, ctx: ExecutionContext) => {
-
-
+        
+        console.log({data})
         const request = ctx.switchToHttp().getRequest();
         const { user } = request;
-        console.log({ data })
 
-        console.log(user)
+        // console.log({user})
         if (data) {
+            console.log('pase por aqui', user.email)
             return user.email
         }
-        return user
+
+        console.log('pase por fuera if', user)
+        return user 
     },
 );

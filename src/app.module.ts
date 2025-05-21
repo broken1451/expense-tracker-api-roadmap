@@ -5,6 +5,8 @@ import { join } from 'path';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import conf from './conf/config';
 import { MongooseModule } from '@nestjs/mongoose';
+import { ExpensesModule } from './expenses/expenses.module';
+import { CreditCardsModule } from './credit-cards/credit-cards.module';
 
 @Module({
   imports: [
@@ -26,7 +28,9 @@ import { MongooseModule } from '@nestjs/mongoose';
 
     ServeStaticModule.forRoot({
       rootPath: join(__dirname, '..', 'public'),
-    })
+    }),
+    ExpensesModule,
+    CreditCardsModule
   ],
   controllers: [],
   providers: [],

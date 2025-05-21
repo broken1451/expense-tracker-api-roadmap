@@ -4,7 +4,9 @@ import { Logger, ValidationPipe } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create(AppModule,{
+    logger:['error', 'warn', 'log']
+  });
   const logger = new Logger('bootstrap');
   app.enableCors({ origin: true });
   app.setGlobalPrefix('api');
