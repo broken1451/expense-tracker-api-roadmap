@@ -33,6 +33,9 @@ export class Auth extends Document {
 
     @Prop({ type: Number, default: 0 })
     retry: number;
+
+    @Prop({ type: Number, default: 0 })
+    salary: number;
 }
 
 export const AuthShema = SchemaFactory.createForClass(Auth);

@@ -30,10 +30,10 @@ export class AuthService {
   ) { }
 
   async create(createAuthDto: CreateAuthDto) {
-    let { name, email, password, last_name, ...restProperties } = createAuthDto;
+    let { name, email, password, last_name, salary, ...restProperties } = createAuthDto;
 
-    if (!name || !email || !password || !last_name) {
-      const missingFields = ['name', 'email', 'password', 'last_name'].filter(field => !createAuthDto[field]);
+    if (!name || !email || !password || !last_name || !salary) {
+      const missingFields = ['name', 'email', 'password', 'last_name', 'salary'].filter(field => !createAuthDto[field]);
       if (missingFields.length > 0) {
         throw new BadRequestException(`The following fields are required: ${missingFields.join(', ')}`);
       }
@@ -42,6 +42,7 @@ export class AuthService {
     name = name.toLowerCase().trim();
     email = email.toLowerCase().trim();
     last_name = last_name.toLowerCase().trim();
+    salary = Number(salary.toString().trim());
 
 
     let userExist: Auth;
@@ -75,6 +76,7 @@ export class AuthService {
       last_name,
       email,
       password,
+      salary,
       ...restProperties,
     });
 
@@ -83,7 +85,7 @@ export class AuthService {
   }
 
   async findAll(page?: string) {
-    const users = await this.userModel.find({}, '-password  -__v').sort({ created_at: 1 }).limit(5).skip(Number(page) || 0).limit(5);
+    const users = await this.userModel.find({}, '-password  -__v').sort({ created_at: 1 }).limit(20).skip(Number(page) || 0);
     const countsUser = await this.userModel.countDocuments({});
     return { users, totalUser: countsUser, userLenght: users.length };
   }
@@ -105,7 +107,7 @@ export class AuthService {
 
   async update(id: string, updateAuthDto: UpdateAuthDto) {
 
-    let {name, last_name, email, ...rest} = updateAuthDto;
+    let {name, last_name, email,salary, ...rest} = updateAuthDto;
     if (!name || !email || !last_name) {
       const missingFields = ['name', 'email', 'last_name'].filter(field => !updateAuthDto[field]);
       if (missingFields.length > 0) {
@@ -116,10 +118,12 @@ export class AuthService {
     name = name.toLowerCase().trim();
     email = email.toLowerCase().trim();
     last_name = last_name.toLowerCase().trim();
+    salary = Number(salary.toString().trim());
 
     const user = await this.findOne(id);
     if (updateAuthDto.roles) {
       updateAuthDto.roles = rolesPermited(updateAuthDto.roles, this.rolesPermited);
+      rest.roles = updateAuthDto.roles;
     }
 
     if (rest.password) {
@@ -131,7 +135,7 @@ export class AuthService {
     try {
        userUpdate = await this.userModel.findByIdAndUpdate(
         id,
-        { update_at: Date.now(), name, last_name, email, ...rest },
+        { update_at: Date.now(), name, last_name, email,salary, ...rest },
         { new: true, select: '-password -__v' },
       );
 

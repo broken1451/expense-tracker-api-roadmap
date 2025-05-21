@@ -1,5 +1,8 @@
 {
   "compilerOptions": {
+    "paths": {
+      "@entitiesExpenses/*": [ "src/expenses/entities/*" ]
+    },
     "module": "commonjs",
     "declaration": true,
     "removeComments": true,
