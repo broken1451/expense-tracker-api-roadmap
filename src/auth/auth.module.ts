@@ -22,7 +22,6 @@ import { StrategyService } from './strategy/strategy.service';
           secret: configService.get('jwt.secret') || '',
           signOptions: {
             expiresIn: configService.get('jwt.expiresIn') || ''
-            // expiresIn: '90s'
           }
         }
       } // es la funcion que voy a mandar a llamar cuando se intente registrar de manera asincrono el modulo 
