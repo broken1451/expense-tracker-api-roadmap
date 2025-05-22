@@ -20,8 +20,8 @@ import { CreditCardsModule } from './credit-cards/credit-cards.module';
       inject: [ConfigService],
       useFactory: (configService: ConfigService) => {
         return {
-          uri: String(configService.get('mongo.url')),
-          dbName: String(configService.get('mongo.dbName')),
+          uri: String(configService.get('mongo.url')) || String(process.env.URI),
+          dbName: String(configService.get('mongo.dbName')) || String(process.env.DBNAME)
         }
       },
     }),

@@ -13,7 +13,7 @@ export class StrategyService extends PassportStrategy(Strategy) {
 
     constructor(private readonly configService: ConfigService, @InjectModel(Auth.name) private readonly userModel: Model<Auth>){
         super({
-            secretOrKey: configService.get('jwt.secret'),
+            secretOrKey: configService.get('jwt.secret') || process.env.JWT_SECRET,
             jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken()
         })
     }
