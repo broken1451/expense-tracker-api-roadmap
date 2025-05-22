@@ -252,13 +252,13 @@ export class AuthService {
       }
     }
     const transporter = nodemailer.createTransport({
-      service: this.configService.get('email.service'),
-      host: this.configService.get('email.host'),
-      port: this.configService.get('email.port'),
+      service: this.configService.get('email.service') || process.env.EMAIL_SERVICE,
+      host: this.configService.get('email.host') || process.env.EMAIL_HOST,
+      port: this.configService.get('email.port') || Number(process.env.EMAIL_PORT),
       secure: false, // true for port 465, false for other ports
       auth: {
-        user: this.configService.get('email.auth.user'),
-        pass: this.configService.get('email.auth.pass'),
+        user: this.configService.get('email.auth.user') || process.env.EMAIL_USER,
+        pass: this.configService.get('email.auth.pass') || process.env.EMAIL_PASS,
       },
     });
 
@@ -272,11 +272,11 @@ export class AuthService {
 
     await transporter.sendMail({
       from: {
-        name: this.configService.get('email.from.name'),
-        address: this.configService.get('email.from.address')
+        name: this.configService.get('email.from.name') || process.env.EMAIL_FROM_NAME,
+        address: this.configService.get('email.from.address') || process.env.EMAIL_FROM_ADDRESS,
       }, 
       to: [`${email}`],
-      subject: this.configService.get('email.subject'),
+      subject: this.configService.get('email.subject') || process.env.EMAIL_SUBJECT,
       html: `${templateMapped}`,
     });
   }

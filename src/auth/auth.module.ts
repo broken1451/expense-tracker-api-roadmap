@@ -19,9 +19,9 @@ import { StrategyService } from './strategy/strategy.service';
       inject: [ConfigService],
       useFactory: (configService: ConfigService) => { // se inyecta el servicio como en cualquier constructor o cualquier clases, solo q aca es una funcion 
         return {
-          secret: configService.get('jwt.secret') || '',
+          secret: configService.get('jwt.secret') || process.env.JWT_SECRET || '',
           signOptions: {
-            expiresIn: configService.get('jwt.expiresIn') || ''
+            expiresIn: configService.get('jwt.expiresIn') || process.env.JWT_EXPIRES_IN || ''
           }
         }
       } // es la funcion que voy a mandar a llamar cuando se intente registrar de manera asincrono el modulo 
