@@ -10,6 +10,7 @@ import * as utc from 'dayjs/plugin/utc';
 import * as timezone from 'dayjs/plugin/timezone';
 import { console } from 'inspector';
 import { TransactionDto } from './dto/transaction.dto';
+import { AuthService } from 'src/auth/auth.service';
 dayjs.extend(utc);
 dayjs.extend(timezone);
 dayjs.locale('es');
@@ -21,7 +22,7 @@ export class CreditCardsService {
 
   constructor(
     @InjectModel(CreditCard.name) private readonly tdcModel: Model<CreditCard>,
-    // private readonly authService: AuthService,
+    private readonly authService: AuthService,
   ) { }
 
 
@@ -61,8 +62,10 @@ export class CreditCardsService {
 
   }
 
-  async findAll() {
-    const creditCards = (await this.tdcModel.find({}, '-__v')).filter(
+  async findAll(req: Request) {
+    const userId = req['user']._id;
+    const userFound = await this.authService.findOne(userId);
+    const creditCards = (await this.tdcModel.find({}, '-__v').where('user').equals(userFound._id)).filter(
       (creditCard) => creditCard.isActive === true
     );
     const countsTotalcreditCards = await this.tdcModel.countDocuments({});
@@ -73,13 +76,16 @@ export class CreditCardsService {
     };
   }
 
- async findOne(id: string) {
+ async findOne(id: string, req?: Request) {
     
     if (!isValidObjectId(id)) {
       throw new BadRequestException(`The expense with id ${id} does not valid mongo id`);
     }
 
-    const creditCardFound = await this.tdcModel.findById(id);
+    const userId = req['user']._id;
+    const userFound = await this.authService.findOne(userId);   
+
+    const creditCardFound = await this.tdcModel.findById(id).where('user').equals(userFound.id).exec();
     if (!creditCardFound) {
       throw new BadRequestException(`The credit card with id ${id} does not exist`);
     }
@@ -89,10 +95,12 @@ export class CreditCardsService {
 
 
 
-  async updateTransaction(nameCreditCard: string, transactionDto: TransactionDto) {
+  async updateTransaction(nameCreditCard: string, transactionDto: TransactionDto, req?: Request) {
 
     const logger = new Logger('bootstrap');
-    const creditFound = await this.tdcModel.findOne({ name: nameCreditCard.toLowerCase().trim() });
+    const userId = req['user']._id;
+    const userFound = await this.authService.findOne(userId);
+    const creditFound = await this.tdcModel.findOne({ name: nameCreditCard.toLowerCase().trim() }).where('user').equals(userFound._id);
     if (!creditFound) {
       throw new BadRequestException(`The credit card with the name ${nameCreditCard} does not exist`);
     }
@@ -108,12 +116,12 @@ export class CreditCardsService {
           { name: nameCreditCard.toLowerCase().trim(), 'transaction._id': _id }, // Usamos _id del DTO aquí
           { $set: { 'transaction.$': { ...transactionToUpdate.toObject(), ...rest } } },
           { new: true } 
-        );
+        ).where('user').equals(userFound._id);;
 
         if (updateResult.modifiedCount > 0) {
           return this.tdcModel.findOne({
             name: nameCreditCard.toLowerCase().trim()
-          });
+          }).where('user').equals(userFound._id);;
         } else {
           logger.warn(
             `No se realizaron cambios en la transacción con id ${_id} en la tarjeta ${nameCreditCard.toLowerCase().trim()}`,
@@ -127,27 +135,29 @@ export class CreditCardsService {
         await this.tdcModel.updateOne(
           { name: nameCreditCard.toLowerCase().trim() },
           { $push: { transaction: { tarjeta: nameCreditCard.toLowerCase().trim(), ...rest } } },
-        );
+        ).where('user').equals(userFound._id);;
         return this.tdcModel.findOne({
           name: nameCreditCard.toLowerCase().trim()
-        });
+        }).where('user').equals(userFound._id);;
       }
     } else {
       // Agregar una nueva transacción (no se proporcionó _id)
       await this.tdcModel.updateOne(
         { name: nameCreditCard.toLowerCase().trim() },
         { $push: { transaction: { tarjeta: nameCreditCard.toLowerCase().trim(), ...rest } } },
-      );
+      ).where('user').equals(userFound._id);;
       return this.tdcModel.findOne({
         name: nameCreditCard.toLowerCase().trim()
-      });
+      }).where('user').equals(userFound._id);;
     }
   }
 
-  async removeTransaction(nameCreditCard: string, transactionId: string) {
+  async removeTransaction(nameCreditCard: string, transactionId: string, req?: Request) {
     
     const logger = new Logger('bootstrap');
-    const creditFound = await this.tdcModel.findOne({ name: nameCreditCard.toLowerCase().trim() });
+    const userId = req['user']._id;
+    const userFound = await this.authService.findOne(userId);
+    const creditFound = await this.tdcModel.findOne({ name: nameCreditCard.toLowerCase().trim() }).where('user').equals(userFound._id);;
     if (!creditFound) {
       throw new BadRequestException(`The credit card with the name ${nameCreditCard} does not exist`);
     }
@@ -163,12 +173,12 @@ export class CreditCardsService {
       const updateResult = await this.tdcModel.updateOne(
         { name: nameCreditCard.toLowerCase().trim() },
         { $pull: { transaction: { _id: transactionId } } },
-      );
+      ).where('user').equals(userFound._id);;
 
       if (updateResult.modifiedCount > 0) {
         return this.tdcModel.findOne({
           name: nameCreditCard.toLowerCase().trim()
-        });
+        }).where('user').equals(userFound._id);;
       } 
     } else {
       logger.warn(
@@ -176,18 +186,22 @@ export class CreditCardsService {
       );
       return this.tdcModel.findOne({
         name: nameCreditCard.toLowerCase().trim()
-      });
+      }).where('user').equals(userFound._id);;
     }
     
     
   }
 
 
-  async update(id: string, updateCreditCardDto: UpdateCreditCardDto) {
+  async update(id: string, updateCreditCardDto: UpdateCreditCardDto, req?: Request) {
+
     const creditFound = await this.findOne(id)
     if (!creditFound) {
       throw new BadRequestException(`The expense with the id ${id} does not exist`);
     }
+
+    const userId = req['user']._id;
+    const userFound = await this.authService.findOne(userId);
 
     let { name, creditLimit, annualInterestRate, dueDate, grantDate } = updateCreditCardDto;
 
@@ -198,12 +212,12 @@ export class CreditCardsService {
       dueDate: dueDate ? dayjs(dueDate).toDate() : creditFound.dueDate,
       grantDate: grantDate ? dayjs(grantDate).toDate() : creditFound.grantDate,
       update_at: Date.now()
-    }, { new: true })
+    }, { new: true }).where('user').equals(userFound._id).exec();
 
     return creditUpdated;
   }
 
-  async remove(id: string) {
+  async remove(id: string,  req?: Request) {
 
     const credidCardExist= await this.findOne(id);
     if (!credidCardExist) {
@@ -213,12 +227,15 @@ export class CreditCardsService {
     if (!credidCardExist.isActive) {
       throw new BadRequestException(`El usuario con el id ${id} ya esta eliminado`);
     }
+
+    const userId = req['user']._id;
+    const userFound = await this.authService.findOne(userId);
   
     credidCardExist.isActive = false;
     credidCardExist.update_at = Date.now();
     const credidCardDeleted = await this.tdcModel.findByIdAndUpdate(id, credidCardExist, {
       new: true,
-    });
+    }).where('user').equals(userFound._id).exec();
 
     return credidCardDeleted;
   }
