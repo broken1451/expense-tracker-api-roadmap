@@ -18,7 +18,7 @@ async function bootstrap() {
   );
 
   const configService = app.get(ConfigService);
-  const port = configService.get<string>('port') || process.env.PORT || 3000; 
+  const port = configService.get<string>('port') || 3000; 
 
   await app.listen(port);
   logger.log(`Microservicio de correos iniciado en puerto ${port}`);
