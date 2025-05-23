@@ -19,9 +19,10 @@ import { CreditCardsModule } from './credit-cards/credit-cards.module';
       imports: [ConfigModule],
       inject: [ConfigService],
       useFactory: (configService: ConfigService) => {
+        console.log(String(process.env.URI))
         return {
           uri: String(configService.get('mongo.url')) || String(process.env.URI),
-          dbName: String(configService.get('mongo.dbName')) || String(process.env.DBNAME)
+          // dbName: String(configService.get('mongo.dbName')) || String(process.env.DBNAME)
         }
       },
     }),
