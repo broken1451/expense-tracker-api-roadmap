@@ -19,10 +19,23 @@ import { CreditCardsModule } from './credit-cards/credit-cards.module';
       imports: [ConfigModule],
       inject: [ConfigService],
       useFactory: (configService: ConfigService) => {
-        console.log(String(process.env.URI))
+        if (!configService.get('mongo.url') && !process.env.URI) {
+          throw new Error('MongoDB URI is not defined in the environment variables or config file');
+        }
+
+        let uri = '';
+        let dbName = '';
+        if (process.env.STAGE === 'development') {
+          uri = String(configService.get('mongo.url')) 
+          dbName = String(configService.get('mongo.dbName'))
+        } else if (process.env.STAGE === 'production') {
+          uri = String(process.env.URI)
+          dbName = String(process.env.DBNAME)
+        }
+        
         return {
-          uri: String(configService.get('mongo.url')) || String(process.env.URI),
-          // dbName: String(configService.get('mongo.dbName')) || String(process.env.DBNAME)
+          uri,
+          dbName
         }
       },
     }),
