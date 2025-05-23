@@ -15,18 +15,17 @@ import { CreditCardsModule } from './credit-cards/credit-cards.module';
       load: [conf],
       isGlobal: true
     }),
-    MongooseModule.forRoot(process.env.URI),
-    // MongooseModule.forRootAsync({
-    //   imports: [ConfigModule],
-    //   inject: [ConfigService],
-    //   useFactory: (configService: ConfigService) => {
-    //     console.log(String(process.env.URI))
-    //     return {
-    //       uri: String(configService.get('mongo.url')) || String(process.env.URI),
-    //       // dbName: String(configService.get('mongo.dbName')) || String(process.env.DBNAME)
-    //     }
-    //   },
-    // }),
+    MongooseModule.forRootAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: (configService: ConfigService) => {
+        console.log(String(process.env.URI))
+        return {
+          uri: String(configService.get('mongo.url')) || String(process.env.URI),
+          dbName: String(configService.get('mongo.dbName')) || String(process.env.DBNAME)
+        }
+      },
+    }),
 
     ServeStaticModule.forRoot({
       rootPath: join(__dirname, '..', 'public'),
