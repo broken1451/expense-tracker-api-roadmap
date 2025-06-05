@@ -11,7 +11,7 @@ export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
   @Post()
-  @Auth(ValidRoles.admin)
+  // @Auth()
   create(@Body() createAuthDto: CreateAuthDto) {
     return this.authService.create(createAuthDto);
   }
@@ -40,15 +40,21 @@ export class AuthController {
   }
 
   // habilitar despues
-  // @Post('/updatePassword')
-  // @HttpCode(200)
-  // updatePassword(@Body() updateAuthDto: UpdateAuthDto) {
-  //   return this.authService.updatePassword(updateAuthDto);
-  // }
+  @Post('/recover-password')
+  @HttpCode(200)
+  updatePassword(@Body() updateAuthDto: UpdateAuthDto) {
+    return this.authService.updatePassword(updateAuthDto);
+  }
 
   @Delete('/:id')
   @Auth(ValidRoles.admin)
   remove(@Param('id') id: string) {
     return this.authService.remove(id);
+  }
+
+  @Get('/total/sizedb')
+  @Auth(ValidRoles.admin, ValidRoles.user)
+  sizeDB() {
+    return this.authService.sizeDB();
   }
 }
