@@ -280,4 +280,14 @@ export class AuthService {
       html: `${templateMapped}`,
     });
   }
+  
+  async sizeDB() {
+    const stats = await this.userModel.db.db.stats();
+    const bdSize = stats.storageSize / 1024 / 1024;
+    return {
+      ok: true,
+      dbName: stats.db,
+      bdSize: `${bdSize.toFixed(2)} MB`
+    }
+  }
 }
