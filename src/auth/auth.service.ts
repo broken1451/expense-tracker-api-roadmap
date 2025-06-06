@@ -264,6 +264,7 @@ export class AuthService {
 
     let datos: any = updateAuthDto
     datos.email = email;
+    datos.password = updateAuthDto.password
     const dayjs = require('dayjs')
     datos.fecha = dayjs().format('DD/MM/YYYY');
 
