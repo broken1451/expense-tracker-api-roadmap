@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable, Body } from '@nestjs/common';
+import { BadRequestException, Injectable, Body, Logger } from '@nestjs/common';
 import { CreateAuthDto } from './dto/create-auth.dto';
 import { UpdateAuthDto } from './dto/update-auth.dto';
 import { Auth } from './entities/auth.entity';
@@ -9,11 +9,12 @@ import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import { rolesPermited } from './utils/roles-permited';
 import { JwtInterface } from './interface/jwt.interface';
-import { LoginhDto } from './dto/login.dto';
+import { LoginhDto, LoginhDtoGoogle } from './dto/login.dto';
 import * as ejs from 'ejs';
 import * as nodemailer from 'nodemailer';
 import * as path from 'path';
 import * as fs from 'fs';
+import { OAuth2Client } from 'google-auth-library';
 
 @Injectable()
 export class AuthService {
@@ -32,8 +33,8 @@ export class AuthService {
   async create(createAuthDto: CreateAuthDto) {
     let { name, email, password, last_name, salary, ...restProperties } = createAuthDto;
 
-    if (!name || !email || !password || !last_name || !salary) {
-      const missingFields = ['name', 'email', 'password', 'last_name', 'salary'].filter(field => !createAuthDto[field]);
+    if (!name || !email || !password || !last_name) {
+      const missingFields = ['name', 'email', 'password', 'last_name'].filter(field => !createAuthDto[field]);
       if (missingFields.length > 0) {
         throw new BadRequestException(`The following fields are required: ${missingFields.join(', ')}`);
       }
@@ -47,7 +48,11 @@ export class AuthService {
 
     let userExist: Auth;
     if (email) {
-      userExist = await this.userModel.findOne({ email });
+      userExist = await this.userModel.findOne({
+        email,
+        isActive: true,
+        google: false
+      });
       if (userExist) {
         throw new BadRequestException(
           `The user already exists in the database with the email ${userExist.email}`,
@@ -290,5 +295,49 @@ export class AuthService {
       dbName: stats.db,
       bdSize: `${bdSize.toFixed(2)} MB`
     }
+  }
+
+  public async loginGoogle(req: LoginhDtoGoogle) {
+    const logger = new Logger('AuthService');
+    let clientId = '';
+    if (process.env.STAGE === 'development') {
+      clientId = this.configService.get<string>('google.clientId')
+    } else if (process.env.STAGE === 'production') {
+      clientId =  process.env.GOOGLE_CLIENT_ID
+    } else {
+      throw new BadRequestException('Client ID is not configured');
+    }
+    const client = new OAuth2Client(clientId);
+
+    const ticket = await client.verifyIdToken({
+      idToken: req.token,
+      audience: clientId,
+    });
+    const payload = ticket.getPayload();
+    const userid = payload['sub'];
+
+    const userExist = await this.userModel.findOne({ google: req.google, email: payload.email, isActive: true });
+    if (userExist) {
+      return {
+        ok: true,
+        user: userExist,
+        exist: true,
+        token: this.getJWT({ id: userExist._id.toString() }),
+      };
+    }
+
+    const userToCreate: CreateAuthDto = {
+      name: payload.name,
+      last_name: payload.family_name,
+      email: payload.email,
+      password: "123456",
+      roles: [],
+      google: req.google,
+      salary: 0,
+    }
+
+    const userNewGoogle = await this.create(userToCreate);
+    // logger.log("no existe el usuario, se creara uno nuevo", userToCreate);
+    return userNewGoogle;
   }
 }

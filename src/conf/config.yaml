@@ -1,19 +1,21 @@
 port: 3500
 mongo:
-  url: mongodb://localhost:27017
-  dbName: tracker-expense-db
-  collectionName: expenses
+  url: ""
+  dbName: ""
+  collectionName: ""
 jwt:
-  secret: secret_jwt_key145@#$
-  expiresIn: 4h
+  secret: ""
+  expiresIn: ""
 email:
-  service: gmail
-  host: smtp.gmail.com
-  port: 587
+  service: ""
+  host: ""
+  port: ""
   auth:
-    user: adrianbravo145@gmail.com
-    pass: twra xwcm jzgd vwwk
+    user: ""
+    pass: ""
   from:
-    name: Expense-tracker@test.com
-    address: Expense-tracker@test.com
-  subject: Expense Tracker
+    name: ""
+    address: ""
+  subject: ""
+google:
+  clientId: ""
