@@ -1,4 +1,4 @@
-import { IsArray, IsEmail, IsNotEmpty, IsNumber, IsOptional, IsString, Matches, MaxLength, MinLength } from "class-validator";
+import { IsArray, IsBoolean, IsEmail, IsNotEmpty, IsNumber, IsOptional, IsString, Matches, MaxLength, MinLength } from "class-validator";
 
 
 export class CreateAuthDto {
@@ -37,6 +37,10 @@ export class CreateAuthDto {
     roles?: string[];
 
     @IsNumber()
-    salary: number;
+    @IsOptional()
+    salary?: number;
+
+    @IsBoolean()
+    google: boolean;
 
 }

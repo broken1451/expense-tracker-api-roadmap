@@ -1,4 +1,4 @@
-import { IsEmail, IsString, MaxLength, MinLength, IsOptional } from 'class-validator';
+import { IsEmail, IsString, MaxLength, MinLength, IsOptional, IsBoolean } from 'class-validator';
 
 
 export class LoginhDto {
@@ -12,4 +12,12 @@ export class LoginhDto {
     @MinLength(6)
     @MaxLength(50)
     password: string;
+}
+export class LoginhDtoGoogle {
+
+    @IsString()
+    token: string
+
+    @IsBoolean()
+    google: boolean;
 }

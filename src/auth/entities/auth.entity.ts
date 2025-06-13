@@ -10,7 +10,7 @@ export class Auth extends Document {
     @Prop({ required: [true, "The last_name is required"], type: String })
     last_name: string;
 
-    @Prop({required: [true, "The name is required and unique"], type: String, unique: true })
+    @Prop({required: [true, "The name is required and unique"], type: String })
     email: string;
 
     @Prop({ required: [true, "The password is required"], type: String })
@@ -36,6 +36,9 @@ export class Auth extends Document {
 
     @Prop({ type: Number, default: 0 })
     salary: number;
+
+    @Prop({ type: Boolean, default: false })
+    google: boolean;
 }
 
 export const AuthShema = SchemaFactory.createForClass(Auth);

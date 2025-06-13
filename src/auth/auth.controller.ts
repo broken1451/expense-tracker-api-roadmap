@@ -2,7 +2,7 @@ import { Controller, Get, Post, Body, Patch, Param, Delete, HttpCode, Query } fr
 import { AuthService } from './auth.service';
 import { CreateAuthDto } from './dto/create-auth.dto';
 import { UpdateAuthDto } from './dto/update-auth.dto';
-import { LoginhDto } from './dto/login.dto';
+import { LoginhDto, LoginhDtoGoogle } from './dto/login.dto';
 import { Auth } from './decorators/auth.decorator';
 import { ValidRoles } from './interface/role.interfaces';
 
@@ -19,6 +19,11 @@ export class AuthController {
   @Post('/login')
   login(@Body() loginDto: LoginhDto) {
     return this.authService.login(loginDto);
+  }
+
+  @Post('/login/google')
+  loginGoogle(@Body() req: LoginhDtoGoogle  ){
+    return this.authService.loginGoogle(req);
   }
 
   @Get()
