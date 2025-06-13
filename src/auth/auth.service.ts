@@ -31,62 +31,72 @@ export class AuthService {
   ) { }
 
   async create(createAuthDto: CreateAuthDto) {
-    let { name, email, password, last_name, salary, ...restProperties } = createAuthDto;
-
-    if (!name || !email || !password || !last_name) {
-      const missingFields = ['name', 'email', 'password', 'last_name'].filter(field => !createAuthDto[field]);
-      if (missingFields.length > 0) {
-        throw new BadRequestException(`The following fields are required: ${missingFields.join(', ')}`);
-      }
-    }
-
-    name = name.toLowerCase().trim();
-    email = email.toLowerCase().trim();
-    last_name = last_name.toLowerCase().trim();
-    salary = Number(salary.toString().trim());
-
-
-    let userExist: Auth;
-    if (email) {
-      userExist = await this.userModel.findOne({
-        email,
-        isActive: true,
-        google: false
-      });
-      if (userExist) {
-        throw new BadRequestException(
-          `The user already exists in the database with the email ${userExist.email}`,
-        );
-      }
-    }
-
-    const saltOrRounds = 10;
-    password = bcrypt.hashSync(password, saltOrRounds);
-
-    if (!restProperties?.roles) {
-      restProperties.roles = ['USER'];
-    }
-
-    if (restProperties?.roles.length == 0) {
-      restProperties.roles = ['ADMIN'];
-    }
-
-
-    let rolesPermit = rolesPermited(restProperties?.roles, this.rolesPermited);
-    restProperties.roles = rolesPermit;
-
+    try {
+      let { name, email, password, last_name, salary, ...restProperties } = createAuthDto;
   
-    const userCreated: Auth = await this.userModel.create({
-      name,
-      last_name,
-      email,
-      password,
-      salary,
-      ...restProperties,
-    });
-
-    const returnUserCreated = await this.findOne(userCreated._id.toString());
-    return {returnUserCreated, token: this.getJWT({ id: userCreated._id.toString() })};
+      if (!name || !email || !password || !last_name) {
+        const missingFields = ['name', 'email', 'password', 'last_name'].filter(field => !createAuthDto[field]);
+        if (missingFields.length > 0) {
+          throw new BadRequestException(`The following fields are required: ${missingFields.join(', ')}`);
+        }
+      }
+  
+      name = name.toLowerCase().trim();
+      email = email.toLowerCase().trim();
+      last_name = last_name.toLowerCase().trim();
+      salary = Number(salary.toString().trim());
+  
+  
+      let userExist: Auth;
+      if (email) {
+        userExist = await this.userModel.findOne({
+          email,
+          isActive: true,
+          google: false
+        });
+        if (userExist) {
+          throw new BadRequestException(
+            `The user already exists in the database with the email ${userExist.email}`,
+          );
+        }
+      }
+  
+      const saltOrRounds = 10;
+      password = bcrypt.hashSync(password, saltOrRounds);
+  
+      if (!restProperties?.roles) {
+        restProperties.roles = ['USER'];
+      }
+  
+      if (restProperties?.roles.length == 0) {
+        restProperties.roles = ['ADMIN'];
+      }
+  
+  
+      let rolesPermit = rolesPermited(restProperties?.roles, this.rolesPermited);
+      restProperties.roles = rolesPermit;
+  
+    
+      const userCreated: Auth = await this.userModel.create({
+        name,
+        last_name,
+        email,
+        password,
+        salary,
+        ...restProperties,
+      });
+  
+      const returnUserCreated = await this.findOne(userCreated._id.toString());
+      return {returnUserCreated, token: this.getJWT({ id: userCreated._id.toString() })};
+    } catch (error) {
+      const logger = new Logger('AuthService');
+      logger.error(error)
+      console.error(error)
+      logger.error(`Error creating user: ${error.message}`);
+      console.error(`Error creating user: ${error.message}`);
+      throw new BadRequestException(`Error creating user: ${error.message}`);
+      
+    }
   }
 
   async findAll(page?: string) {
